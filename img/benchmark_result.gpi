@@ -1,0 +1,22 @@
+set terminal pdfcairo transparent enhanced size 13cm, 8cm font ",14"
+
+set output "benchmark_result.pdf"
+
+set datafile separator ","
+
+set style data histogram
+set style histogram cluster gap 1
+
+set grid
+
+set ylabel "Communication Time [s]"
+
+set style line 1 linecolor rgb "#0060ad"
+set style line 2 linecolor rgb "#dd181f"
+
+plot "benchmark_result.csv" every ::1::7 u 3:xtic(1) ti "SDN" ls 1 fs pattern 6, \
+     "benchmark_result.csv" every ::1::7 u 4:xtic(1) ti "D-mod-K" ls 2 fs pattern 2
+
+unset output
+system "pdfcrop benchmark_result.pdf"
+system "mv benchmark_result-crop.pdf benchmark_result.pdf"
