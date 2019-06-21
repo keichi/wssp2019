@@ -7,6 +7,7 @@
 \usepackage[bottom]{footmisc}
 \usepackage{newtxtext}
 \usepackage{newtxmath}
+\usepackage{url}
 \RequirePackage[l2tabu, orthodox]{nag}
 
 % Allow PDF 1.7 documents to be used in \includegraphics
@@ -30,7 +31,7 @@ Shinji Shimojo}
 8916-5 Takayama, Ikoma, Nara, Japan\\ \email{keichi@is.naist.jp}
 \and Susumu Date, Yasuhiro Watashiba, Yoshiyuki Kido, Shinji Shimojo \at
 Cybermedia Center, Osaka University, 5-1 Mihogaoka, Ibaraki, Osaka, Japan\\
-\email{\{date, watashiba-y, kido, shimojo\}@cmc.osaka-u.ac.jp}}
+\email{{date, watashiba-y, kido, shimojo}@cmc.osaka-u.ac.jp}}
 %
 % Use the package "url.sty" to avoid
 % problems with special characters
@@ -76,16 +77,52 @@ Ipsum~\cite{Dashdavaa2014}.
 
 \section{Problem}
 
-\begin{figure}
-    \centering
-    \includegraphics{arch}
-    \caption{Performance Development of Top500 HPC Systems}%
-    \label{kt:fig:top500-rmax}
-\end{figure}
+\subsection{SDN-enhanced MPI}
+
+MPI~\cite{MPIForum2012}
+
+\subsection{Multi-job support}
 
 \section{Proposal}
 
-\section{Preliminary Evaluation}
+\subsection{Overview}
+
+\begin{figure}
+    \centering
+    \includegraphics{architecture}
+    \caption{Overall architecture}%
+    \label{kt:fig:architecture}
+\end{figure}
+
+\subsection{Interconnect Manager}
+
+Ryu\footnote{\url{https://osrg.github.io/ryu/}}
+
+gRPC\footnote{\url{https://grpc.io/}}
+
+OpenFlow~\cite{McKeown2008}
+
+\subsection{Scheduler Plugin}
+
+\section{Evaluation}
+
+\subsection{Evaluation Environment}
+
+\begin{figure}
+    \centering
+    \includegraphics{evaluation_cluster}
+    \caption{Cluster used for evaluation}%
+    \label{kt:fig:cluster}
+\end{figure}
+
+\subsection{Evaluation Result}
+
+\begin{figure}
+    \centering
+    \includegraphics{benchmark_result}
+    \caption{Benchmark results using miniapps}%
+    \label{kt:fig:benchmark}
+\end{figure}
 
 \section{Conclusion}
 
