@@ -4,18 +4,23 @@ set output "benchmark_result.pdf"
 
 set datafile separator ","
 
-set style data histogram
-set style histogram cluster gap 1
+# set style data histogram
+# set style histogram cluster gap 1
+
+set boxwidth 0.5 relative
 
 set grid
+set yrange [0:*]
 
-set ylabel "Communication Time [s]"
+set ylabel "Communication time"
 
 set style line 1 linecolor rgb "#0060ad"
 set style line 2 linecolor rgb "#dd181f"
 
-plot "benchmark_result.csv" every ::1::7 u 3:xtic(1) ti "SDN" ls 1 fs pattern 6, \
-     "benchmark_result.csv" every ::1::7 u 4:xtic(1) ti "D-mod-K" ls 2 fs pattern 2
+unset key
+
+plot "benchmark_result.csv" every ::1::7 u ($4/$3):xtic(1) w boxes \
+    ti "Speedup" ls 1 fs pattern 2
 
 unset output
 system "pdfcrop benchmark_result.pdf"
