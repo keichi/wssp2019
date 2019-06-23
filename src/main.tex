@@ -1,19 +1,42 @@
 \documentclass[graybox]{svmult}
 
-\usepackage[utf8]{inputenc}
-\usepackage{makeidx}
-\usepackage{graphicx}
-\usepackage{multicol}
 \usepackage[bottom]{footmisc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{makeidx}
+\usepackage{multicol}
 \usepackage{newtxtext}
 \usepackage{newtxmath}
 \usepackage{url}
 \RequirePackage[l2tabu, orthodox]{nag}
 
-% Allow PDF 1.7 documents to be used in \includegraphics
+% Allow PDF 1.7 documents to be included with \includegraphics
 \pdfminorversion=7
 
 \graphicspath{{./img/}}
+
+% listing
+\lstset{%
+  language={C},
+  basicstyle={\small\ttfamily},%
+  identifierstyle={\small\ttfamily},%
+  commentstyle={\small\itshape},%
+  keywordstyle={\small\bfseries},%
+  ndkeywordstyle={\small\ttfamily},%
+  stringstyle={\small\ttfamily},%
+  frame={tb},%
+  breaklines=true,%
+  columns=[l]{fullflexible},%
+  numbers=left,%
+  numberstyle={\scriptsize},%
+  stepnumber=1,%
+  numbersep=1em,%
+  lineskip=-0.5ex,%
+  mathescape,%
+  xleftmargin=2em,%
+  framexleftmargin=1.5em,%
+}
 
 \makeindex
 
@@ -75,17 +98,58 @@ Ipsum~\cite{Takahashi2018}. including versions of Lorem
 Ipsum~\cite{Dashdavaa2014}.
 
 
-\section{Problem}
+\section{Background}
 
 \subsection{SDN-enhanced MPI}
 
 MPI~\cite{MPIForum2012}
 
-\subsection{Multi-job support}
+\subsection{Job Scheduler}
+
+A job scheduler is a system that accepts \textit{job} submissions from users and
+dispatch the
+
+Examples of job schedulers used in production HPC systems include
+Slurm~\cite{Yoo2003}, PBS
+Professional\footnote{\url{https://www.pbspro.org/}},
+Torque\footnote{\url{https://www.adaptivecomputing.com/products/torque/}} and
+UNIVA Grid Engine\footnote{\url{http://www.univa.com/products/}}. In this
+paper, Slurm is assumed as it is one of the most widely adopted open-source
+job schedulers.
+
+Figure~\ref{kt:fig:slurm} shows the architecture of Slurm. Slurm employs a
+master-worker architecture like many other job schedulers. The master accepts
+job requests from users and
+
+Here, it is assumed
+that the cluster has three types of node: login node, head node and compute
+node.
+
+Like many job
+schedulers, Slurm employs a master-worker architecture, where the master
+accepts from
+
+\begin{figure}
+    \centering
+    \includegraphics{slurm}
+    \caption{Architecture of Slurm}%
+    \label{kt:fig:slurm}
+\end{figure}
+
+\subsection{Challenges and Goal}
 
 \section{Proposal}
 
 \subsection{Overview}
+
+Figure~\ref{kt:fig:architecture} shows the overall architecture of the
+proposed SDN-enhanced MPI framework.
+
+The scheduler plugin and the interconnect manager use
+gRPC\footnote{\url{https://grpc.io/}} to communicate with one another. We have
+chosen gRPC, which is an RPC framework built on top of HTTP/2, because it
+can automatically generate server and client based on the interface
+definition.
 
 \begin{figure}
     \centering
@@ -96,13 +160,57 @@ MPI~\cite{MPIForum2012}
 
 \subsection{Interconnect Manager}
 
+The interconnect manager is responsible for computing and installing optimal
+routes for each job.
+
+\begin{itemize}
+    \item Receiving notifications from srun and slurmd
+    \item Persisting the state of jobs to a database
+    \item Computing routes
+    \item Installing routes to interconnect by talking to the OpenFlow
+        controller.
+\end{itemize}
+
+
+The builtin REST API server of Ryu.
+
 Ryu\footnote{\url{https://osrg.github.io/ryu/}}
 
-gRPC\footnote{\url{https://grpc.io/}}
-
 OpenFlow~\cite{McKeown2008}
+SQLite\footnote{\url{https://www.sqlite.org/index.html}}
 
 \subsection{Scheduler Plugin}
+
+The scheduler plugin is responsible for
+
+-
+
+Slurm provides a plugin mechanism called Slurm Plug-in Architecture for Node
+and job Control (SPANK). SPANK
+
+Furthermore,
+
+This plugin is inserted into srun and slurmd
+
+srun: Sends job ID, name, uid/gid of user, number of tasks and communication
+pattern name to the interconnect manager when a job is submitted.
+slurmd: Sends job id, MPI rank, node ID and node name to interconnect manager
+when a process consisting a job starts or exits. Blocks until the routings
+have been setup in the interconnect.
+
+\begin{lstlisting}
+#!/bin/bash
+#
+#SBATCH --job-name=test_omp
+#SBATCH --output=res_omp.txt
+#
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --time=10:00
+#SBATCH --mem-per-cpu=100
+#SBATCH --comm-pattern=cg-c-128
+\end{lstlisting}
+
 
 \section{Evaluation}
 
