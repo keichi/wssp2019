@@ -1,5 +1,6 @@
 \documentclass[graybox]{svmult}
 
+\usepackage{cite}
 \usepackage[bottom]{footmisc}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
@@ -55,11 +56,6 @@ Shinji Shimojo}
 \and Susumu Date, Yasuhiro Watashiba, Yoshiyuki Kido, Shinji Shimojo \at
 Cybermedia Center, Osaka University, 5-1 Mihogaoka, Ibaraki, Osaka, Japan\\
 \email{{date, watashiba-y, kido, shimojo}@cmc.osaka-u.ac.jp}}
-%
-% Use the package "url.sty" to avoid
-% problems with special characters
-% used in your e-mail or web address
-%
 \maketitle
 
 \abstract*{Each chapter should be preceded by an abstract (no more than 200
@@ -84,30 +80,86 @@ command if the abstract is also to appear in the printed version of the book.}
 
 \section{Introduction}
 
-Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
-when an unknown printer took a galley of type and scrambled it to make a type
-specimen book. It has survived not only five centuries, but also the leap into
-electronic typesetting, remaining essentially unchanged. It was popularised in
-the 1960s with the release of Letraset sheets containing Lorem Ipsum passages,
-and more recently with desktop publishing software like Aldus PageMaker
-including versions of Lorem Ipsum~\cite{Takahashi2014}. including versions of
-Lorem Ipsum~\cite{Takahashi2015}. including versions of Lorem
-Ipsum~\cite{Takahashi2017}. including versions of Lorem
-Ipsum~\cite{Takahashi2018}. including versions of Lorem
-Ipsum~\cite{Dashdavaa2014}.
+The demand for computing performance of high-performance computing (HPC)
+systems has been every-growing. In fact, exascale HPC systems are now on the
+horizon. To meet the sustained growth of HPC systems, the high-performance
+network that interconnects the computing nodes composing a cluster, or
+\textit{interconnect}, needs to be enhanced to achieve larger scale, higher
+bandwidth and lower latency. As a result, the interconnect now accounts for a
+significant portion of total financial cost and power consumption of an HPC
+system~\cite{Michelogiannakis2017}.
 
+Until today, the established strategy to design a interconnect has been
+\textit{over-provisioning}, where bandwidth and routes are over-provisioned to
+accommodate any application with arbitrary communication pattern will not
+experience degradation of communication performance. The reason for this
+choice is two-fold: first, a production HPC system is usually shared by many
+users, where each user runs different applications. Therefore, it is not
+realistic to tailor an interconnect to a communication pattern of a single
+application. Second, conventional networking hardware used in interconnects do
+not allow administrators to change their configuration on-the-fly. Therefore,
+the only choice is to over-provision the interconnect with abundant bandwidth
+and routes. However, an over-subscribed design is becoming increasingly
+challenging to implement due to its rapidly rising financial cost and power
+consumption. We believe that dynamically controlling the traffic in the
+interconnect based on the communication pattern of an application could
+overcome this problem.
 
-\section{Background}
+However, with the recent emergence of networking technologies that introduces
+programmability into networks, the assumption that interconnects are static
+and cannot be reconfigured does not hold anymore. A prominent example of such
+networking technology is Software-Defined Networking (SDN), which is a novel
+networking architecture that allows administrators to dynamically and flexibly
+control the network like a software.
 
-\subsection{SDN-enhanced MPI}
+Based on this idea, we have been developing on \textit{SDN-enhanced MPI}, a
+framework that integrates Software-Defined Networking (SDN) into Message
+Passing Interface (MPI). The goal of this framework is to dynamically control
+the traffic in the interconnect based on the MPI communication pattern of
+applications by utilizing the network programmability provided by SDN\@. To
+this end, we have demonstrated that individual MPI collectives are accelerated
+by utilizing SDN~\cite{Dashdavaa2014,Takahashi2014}. In addition, we have
+designed and implemented a mechanism to synchronize the progress of an
+application and the reconfiguration of the
+interconnect~\cite{Takahashi2015,Takahashi2018}. Furthermore, we have
+developed a toolset consisting of (1) a profiler to extract communication
+pattern from applications and (2) an interconnect simulator predict the
+traffic flow generated in an interconnect~\cite{Takahashi2017}.
 
-MPI~\cite{MPIForum2012}
+Although our work so far has demonstrated that individual MPI applications can
+be accelerated through the application of SDN, a key issue has remained
+towards the deployment on production clusters: our current SDN-enhanced MPI
+framework does not allow the concurrent execution of multiple applications on
+a cluster.
+
+In this paper, we aim to solve this problem integrating our framework into the
+job scheduler of a cluster.
+
+The rest of this paper is organized as follows. Section~\ref{kt:sec:ii}
+describes the key technologies behind the proposal and challenges to be tackled.
+Section~\ref{kt:sec:iii} proposes the architecture of the proposed framework.
+Section~\ref{kt:sec:iv} shows the preliminary evaluation result of the
+proposed framework. Section~\ref{kt:sec:v} concludes this paper and discusses
+future work.
+
+\section{Background}\label{kt:sec:ii}
+
+\subsection{Software-Defined Networking (SDN)}
+
+Software-Defined Networking (SDN)~\cite{McKeown2008} is a novel networking
+architecture that brings programmability into the network and allows users to
+dynamically and flexibly control the network as if the network was a software.
+In conventional networking architectures, the \textit{control plane}, which
+makes the decision on how to handle packets, and the \textit {data plane},
+which forwards packets, are tightly coupled together on each networking device
+such as a switch. In SDN, the two planes are separated into different
+hardware. Whereas data plane is implemented on each networking device, the
+control plane is handled by a centralized software.
 
 \subsection{Job Scheduler}
 
-A job scheduler is a system that accepts \textit{job} submissions from users and
-dispatch the
+A job scheduler is a system that accepts \textit{job} submissions from users
+and dispatch the
 
 Examples of job schedulers used in production HPC systems include
 Slurm~\cite{Yoo2003}, PBS
@@ -138,7 +190,15 @@ accepts from
 
 \subsection{Challenges and Goal}
 
-\section{Proposal}
+There are mainly two challenges in
+
+\begin{itemize}
+    \item Job start and finish:
+    \item Node allocation and process mapping:
+\end{itemize}
+
+
+\section{Proposal}\label{kt:sec:iii}
 
 \subsection{Overview}
 
@@ -175,8 +235,6 @@ routes for each job.
 The builtin REST API server of Ryu.
 
 Ryu\footnote{\url{https://osrg.github.io/ryu/}}
-
-OpenFlow~\cite{McKeown2008}
 SQLite\footnote{\url{https://www.sqlite.org/index.html}}
 
 \subsection{Scheduler Plugin}
@@ -212,7 +270,7 @@ have been setup in the interconnect.
 \end{lstlisting}
 
 
-\section{Evaluation}
+\section{Preliminary Evaluation}\label{kt:sec:iv}
 
 \subsection{Evaluation Environment}
 
@@ -232,7 +290,7 @@ have been setup in the interconnect.
     \label{kt:fig:benchmark}
 \end{figure}
 
-\section{Conclusion}
+\section{Conclusion}\label{kt:sec:v}
 
 \bibliographystyle{spmpsci}
 \bibliography{references}

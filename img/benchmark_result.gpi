@@ -1,4 +1,4 @@
-set terminal pdfcairo transparent enhanced size 13cm, 8cm font ",14"
+set terminal pdfcairo transparent enhanced size 12cm, 8cm font ",13"
 
 set output "benchmark_result.pdf"
 
@@ -12,7 +12,7 @@ set boxwidth 0.5 relative
 set grid
 set yrange [0:*]
 
-set ylabel "Communication time"
+set ylabel "Speedup"
 
 set style line 1 linecolor rgb "#0060ad"
 set style line 2 linecolor rgb "#dd181f"
@@ -20,7 +20,7 @@ set style line 2 linecolor rgb "#dd181f"
 unset key
 
 plot "benchmark_result.csv" every ::1::7 u ($4/$3):xtic(1) w boxes \
-    ti "Speedup" ls 1 fs pattern 2
+    ls 1 fs pattern 2
 
 unset output
 system "pdfcrop benchmark_result.pdf"
