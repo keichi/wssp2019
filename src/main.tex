@@ -1,5 +1,6 @@
 \documentclass[graybox]{svmult}
 
+\usepackage{booktabs}
 \usepackage{cite}
 \usepackage[bottom]{footmisc}
 \usepackage[utf8]{inputenc}
@@ -130,12 +131,14 @@ traffic flow generated in an interconnect~\cite{Takahashi2017}.
 
 Although our work so far has demonstrated that individual MPI applications can
 be accelerated through the application of SDN, a key issue has remained
-towards the deployment on production clusters: our current SDN-enhanced MPI
-framework does not allow the concurrent execution of multiple applications on
-a cluster.
+towards the deployment of our framework on production clusters: our current
+SDN-enhanced MPI framework does not allow the concurrent execution of multiple
+applications on a cluster. As mentioned earlier, clusters are usually shared
+among many users. Therefore, it is crucial that multiple jobs are able to be
+executed at the same time on a cluster.
 
-In this paper, we aim to solve this problem integrating our framework into the
-job scheduler of a cluster.
+In this paper, we aim to solve this limitation by integrating our framework
+into the job scheduler of a cluster.
 
 The rest of this paper is organized as follows. Section~\ref{kt:sec:ii}
 describes the key technologies behind the proposal and challenges to be tackled.
@@ -148,7 +151,7 @@ future work.
 
 \subsection{Software-Defined Networking (SDN)}
 
-Software-Defined Networking (SDN)~\cite{McKeown2008} is a novel networking
+Software-Defined Networking (SDN)~\cite{Jamalian2015} is a novel networking
 architecture that brings programmability into the network and allows users to
 dynamically and flexibly control the network as if the network was a software.
 In conventional networking architectures, the \textit{control plane}, which
@@ -156,32 +159,32 @@ makes the decision on how to handle packets, and the \textit {data plane},
 which forwards packets, are tightly coupled together on each networking device
 such as a switch. In SDN, the two planes are separated into different
 hardware. Whereas data plane is implemented on each networking device, the
-control plane is handled by a centralized software.
+control plane is handled by a centralized software controller. Administrators
+can achieve dynamic and flexible control over the network by developing a
+controller that implements their desired control strategy.
+
+The current de facto standard implementation of SDN is
+OpenFlow~\cite{McKeown2008}. In an OpenFlow network, the data plane is handled
+by OpenFlow switches, and the control plane is handled by an OpenFlow
+controller. Switches and controllers communicate with one another through the
+OpenFlow protocol. In this paper, we assume that the interconnect of the
+cluster is deployed with OpenFlow switches.
 
 \subsection{Job Scheduler}
 
-A job scheduler is a system that accepts \textit{job} submissions from users
-and dispatch the
-
-Examples of job schedulers used in production HPC systems include
-Slurm~\cite{Yoo2003}, PBS
+A job scheduler is a system that manages the computing resources such as CPU
+and memory in a cluster. The job scheduler accepts \textit{job} submissions
+from users, which is a request to run an application on the cluster and a set
+of resource to run the application. The job scheduler allocates computing
+resource in the cluster and launch the application on the allocated computing
+resources. If there are not enough available resource in the cluster, the job
+will queued for later execution. Job schedulers used in production HPC systems
+include Slurm~\cite{Yoo2003}, PBS
 Professional\footnote{\url{https://www.pbspro.org/}},
 Torque\footnote{\url{https://www.adaptivecomputing.com/products/torque/}} and
 UNIVA Grid Engine\footnote{\url{http://www.univa.com/products/}}. In this
 paper, Slurm is assumed as it is one of the most widely adopted open-source
 job schedulers.
-
-Figure~\ref{kt:fig:slurm} shows the architecture of Slurm. Slurm employs a
-master-worker architecture like many other job schedulers. The master accepts
-job requests from users and
-
-Here, it is assumed
-that the cluster has three types of node: login node, head node and compute
-node.
-
-Like many job
-schedulers, Slurm employs a master-worker architecture, where the master
-accepts from
 
 \begin{figure}
     \centering
@@ -190,28 +193,48 @@ accepts from
     \label{kt:fig:slurm}
 \end{figure}
 
-\subsection{Challenges and Goal}
+Figure~\ref{kt:fig:slurm} shows the architecture of Slurm. Slurm employs a
+\textit{master-worker} architecture like many other job schedulers. The
+master, slurmctld, oversees the status of every compute node in the cluster.
+It receives job submissions from users, allocates computing resources to a job
+and launches the job by instructing to the workers. Optionally, slurmdbd is
+used for logging and accounting purposes. Each compute node runs a worker,
+slurmd, that monitors the status of the compute, communicates with slurmctld
+and launches user applications when requested by slurmctld. Users interact
+with slurmctld through utilities such as sbatch (submits a job), srun (submits
+an interactive job) and squeue (list queued jobs).
 
-There are mainly two challenges in
+\subsection{Challenges}
+
+
+Since the job scheduler decided when to run which job,
+. Furthermore,
 
 \begin{itemize}
-    \item Job start and finish:
+    \item Acquiring
     \item Node allocation and process mapping:
+    \item Transparency from users:
 \end{itemize}
 
-
 \section{Proposal}\label{kt:sec:iii}
+
+This section first briefly reviews the overall architecture of the proposed
+framework. Subsequently, individual components of the framework are described
+in detail.
 
 \subsection{Overview}
 
 Figure~\ref{kt:fig:architecture} shows the overall architecture of the
-proposed SDN-enhanced MPI framework.
-
-The scheduler plugin and the interconnect manager use
-gRPC\footnote{\url{https://grpc.io/}} to communicate with one another. We have
-chosen gRPC, which is an RPC framework built on top of HTTP/2, because it
-can automatically generate server and client based on the interface
-definition.
+proposed SDN-enhanced MPI framework. The proposed framework mainly consists of
+three components: (1) interconnect manager, (2) scheduler plugin, and (3)
+OpenFlow controller. The interconnect manager is responsible for computing
+optimized routes  for each job. The scheduler plugin is responsible
+for sending information about a job when a job has started or finished. The
+OpenFlow controller is responsible for communicating with the OpenFlow
+switches and installing the routing generated by the interconnect manager.
+We reuse a generic OpenFlow controller provided by the
+Ryu\footnote{\url{https://osrg.github.io/ryu/}} OpenFlow framework that
+provides a REST API to install, query, update and remove flows.
 
 \begin{figure}
     \centering
@@ -220,43 +243,35 @@ definition.
     \label{kt:fig:architecture}
 \end{figure}
 
-\subsection{Interconnect Manager}
-
-The interconnect manager is responsible for computing and installing optimal
-routes for each job.
-
-\begin{itemize}
-    \item Receiving notifications from srun and slurmd
-    \item Persisting the state of jobs to a database
-    \item Computing routes
-    \item Installing routes to interconnect by talking to the OpenFlow
-        controller.
-\end{itemize}
-
-
-The builtin REST API server of Ryu.
-
-Ryu\footnote{\url{https://osrg.github.io/ryu/}}
-SQLite\footnote{\url{https://www.sqlite.org/index.html}}
+The scheduler plugin and the interconnect manager use RPCs to communicate with
+one another. Specifically, gRPC\footnote{\url{https://grpc.io/}}, which is an
+RPC framework built on top of HTTP/2, is used. The main reason behind this
+choice is because gRPC can automatically generate server and client code from
+an interface definition of remote procedures. Therefore, it saves much
+implementation effort than implementing our own protocol on raw TCP/IP\@.
 
 \subsection{Scheduler Plugin}
 
-The scheduler plugin is responsible for
+The scheduler plugin is responsible for sending information about a job when a
+job has started or finished. As described earlier, the scheduler decides when
+to run which job. Furthermore, the node allocation and process mapping are
+unknown until the job starts. Therefore, a mechanism is needed to notify the
+interconnect manager about these information.
 
--
-
-Slurm provides a plugin mechanism called Slurm Plug-in Architecture for Node
-and job Control (SPANK). SPANK
-
-Furthermore,
+For this reason, we utilize a plugin mechanism called Slurm Plug-in
+Architecture for Node and job Control (SPANK) provided by Slurm. SPANK allows
+developers to insert hooks before and after
 
 This plugin is inserted into srun and slurmd
 
-srun: Sends job ID, name, uid/gid of user, number of tasks and communication
-pattern name to the interconnect manager when a job is submitted.
-slurmd: Sends job id, MPI rank, node ID and node name to interconnect manager
-when a process consisting a job starts or exits. Blocks until the routings
-have been setup in the interconnect.
+\begin{itemize}
+\item \textbf{sbatch/srun}: Sends job ID, name, uid/gid of user, number of
+    tasks and communication pattern name to the interconnect manager when a
+    job is submitted.
+\item \textbf{slurmd}: Sends job id, MPI rank, node ID and node name to
+    interconnect manager when a process consisting a job starts or exits.
+    Blocks until the routings
+\end{itemize}
 
 \begin{lstlisting}
 #!/bin/bash
@@ -272,6 +287,23 @@ have been setup in the interconnect.
 \end{lstlisting}
 
 
+
+\subsection{Interconnect Manager}
+
+The interconnect manager is responsible for computing and installing optimal
+routes for each job.
+
+\begin{itemize}
+    \item Receiving notifications from srun and slurmd
+    \item Persisting the state of jobs to a database
+    \item Computing routes
+    \item Installing routes to interconnect by talking to the OpenFlow
+        controller.
+\end{itemize}
+
+
+SQLite\footnote{\url{https://www.sqlite.org/index.html}}
+
 \section{Preliminary Evaluation}\label{kt:sec:iv}
 
 \subsection{Evaluation Environment}
@@ -283,6 +315,22 @@ have been setup in the interconnect.
     \label{kt:fig:cluster}
 \end{figure}
 
+\begin{table}[]
+\caption{Kernels used in the evaluation}%
+\label{kt:tbl:openflow-messages}
+\begin{tabular}{ll}
+\toprule
+Name      & Description \\ \midrule
+CG        & Solves a sparse linear system using the conjugate gradient method \\
+LU        & Solves a dense linear system by using LU decomposition            \\
+FT        &             \\
+Stencil2D & A two-dimensional stencil solver           \\
+Stencil3D & A three dimensional stencil solver            \\
+Butterfly &             \\
+SpMV      & A sparse-matrix vector kernel            \\ \bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Evaluation Result}
 
 \begin{figure}
@@ -293,6 +341,10 @@ have been setup in the interconnect.
 \end{figure}
 
 \section{Conclusion}\label{kt:sec:v}
+
+\begin{acknowledgement}
+This work was supported by JSPS KAKENHI Grant Number 17K00168.
+\end{acknowledgement}
 
 \bibliographystyle{spmpsci}
 \bibliography{references}
