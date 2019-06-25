@@ -258,35 +258,45 @@ to run which job. Furthermore, the node allocation and process mapping are
 unknown until the job starts. Therefore, a mechanism is needed to notify the
 interconnect manager about these information.
 
-For this reason, we utilize a plugin mechanism called Slurm Plug-in
-Architecture for Node and job Control (SPANK) provided by Slurm. SPANK allows
-developers to insert hooks before and after
+For this reason, we utilize a builtin plugin mechanism of Slurm, which is
+called Slurm Plug-in Architecture for Node and job Control (SPANK). SPANK
+allows developers to easily customize the job startup and cleanup of Slurm.
+SPANK plugins are not linked with Slurm itself and can be loaded during
+runtime. In addition, SPANK allows developers to add new options to the job
+script and job submission commands.
 
-This plugin is inserted into srun and slurmd
+When a job is submitted by a user via sbatch or srun, our plugin sends the ID
+and name of the job, uid of the submitter, number of processes and
+communication pattern of the application to the interconnect manager. The user
+needs to manually specify the communication pattern in the job script as shown
+in Listing~\ref{kt:lst:script}.
 
-\begin{itemize}
-\item \textbf{sbatch/srun}: Sends job ID, name, uid/gid of user, number of
-    tasks and communication pattern name to the interconnect manager when a
-    job is submitted.
-\item \textbf{slurmd}: Sends job id, MPI rank, node ID and node name to
-    interconnect manager when a process consisting a job starts or exits.
-    Blocks until the routings
-\end{itemize}
-
-\begin{lstlisting}
+\begin{lstlisting}[float,caption=An example of a job script,label=kt:lst:script]
 #!/bin/bash
 #
-#SBATCH --job-name=test_omp
-#SBATCH --output=res_omp.txt
+#SBATCH --job-name=cg-benchmark
+#SBATCH --ntasks=128
+#SBATCH --time=01:00:00
 #
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --time=10:00
-#SBATCH --mem-per-cpu=100
 #SBATCH --comm-pattern=cg-c-128
 \end{lstlisting}
 
+When a job is being launched on each compute node by slurmd, our plugin sends
+the ID and name of the job, node ID and MPI rank number to the interconnect
+manager. These information is used by the interconnect manager to obtain the
+node allocation and process mapping. After these information are sent over to
+the interconnect manager, the plugin blocks until the routings are computed
+and installed to the interconnect. Once the routings are ready, the plugin
+returns control to Slurm and eventually, the user application is started.
 
+When a job has finished, the same information is send over to the interconnect
+manager. Similar to the launch, the plugin blocks until the routings are
+uninstalled from the interconnect. After that, the rest of the cleanup is
+resumed.
+
+All of the above operations are performed transparently from the user
+application. In other words, the user application does not need to be modified
+nor a special program needs to be executed in the job.
 
 \subsection{Interconnect Manager}
 
