@@ -304,19 +304,25 @@ The interconnect manager is responsible for computing and installing optimal
 routes for each job.
 
 \begin{itemize}
-    \item Receiving notifications from srun and slurmd
-    \item Persisting the state of jobs to a database
-    \item Computing routes
-    \item Installing routes to interconnect by talking to the OpenFlow
-        controller.
+    \item Receiving notifications from the scheduler plugin
+    \item Maintaining the state of the cluster
+    \item Computing optimal routing for each job
+    \item Installing the computed routing to interconnect
 \end{itemize}
-
 
 SQLite\footnote{\url{https://www.sqlite.org/index.html}}
 
-\section{Preliminary Evaluation}\label{kt:sec:iv}
+\section{Evaluation}\label{kt:sec:iv}
+
+In this section, we conduct a preliminary evaluation to assess the
+effectiveness of our proposed framework.
 
 \subsection{Evaluation Environment}
+
+The evaluation experiment was conducted on a small-scale cluster composed of
+20 compute nodes connected through a two-tier fat-tree interconnect as
+illustrated in Fig.~\ref{kt:fig:cluster}. Each compute node is equipped with
+two quad-core Intel Xeon E5520 CPUs.
 
 \begin{figure}
     \centering
@@ -325,7 +331,7 @@ SQLite\footnote{\url{https://www.sqlite.org/index.html}}
     \label{kt:fig:cluster}
 \end{figure}
 
-\begin{table}[]
+\begin{table}
 \caption{Kernels used in the evaluation}%
 \label{kt:tbl:openflow-messages}
 \begin{tabular}{ll}
