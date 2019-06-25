@@ -1,22 +1,15 @@
 MAIN=src/main.tex
 SOURCES=$(wildcard ./src/*.tex)
 IMAGE_OBJS=$(wildcard ./img/*.obj)
-IMAGES=$(IMAGE_OBJS:.obj=.pdf)
+IMAGES=$(IMAGE_OBJS:.obj=.eps)
 REFERENCES=references.bib
 
 .PHONY: all clean open watch
 
 all: main.pdf
 
-%.pdf-raw: %.obj
-	tgif -color -print -pdf $<
-	mv $(<:.obj=.pdf) $@
-
-%.pdf-cropped: %.pdf-raw
-	pdfcrop $< $@
-
-%.pdf: %.pdf-cropped
-	gs -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -dEmbedAllFonts=true -sOutputFile=$@ -f $<
+%.eps: %.obj
+	tgif -color -print -eps $<
 
 main.pdf: $(MAIN) $(SOURCES) $(IMAGES) $(REFERENCES)
 	latexmk -pdf $(MAIN)

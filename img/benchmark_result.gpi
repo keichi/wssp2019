@@ -1,11 +1,8 @@
-set terminal pdfcairo transparent enhanced size 12cm, 8cm font ",13"
+set terminal postscript eps color enhanced size 12cm, 8cm font ",13"
 
-set output "benchmark_result.pdf"
+set output "benchmark_result.eps"
 
 set datafile separator ","
-
-# set style data histogram
-# set style histogram cluster gap 1
 
 set boxwidth 0.5 relative
 
@@ -23,5 +20,3 @@ plot "benchmark_result.csv" every ::1::7 u ($4/$3):xtic(1) w boxes \
     ls 1 fs pattern 2
 
 unset output
-system "pdfcrop benchmark_result.pdf"
-system "mv benchmark_result-crop.pdf benchmark_result.pdf"
