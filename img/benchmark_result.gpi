@@ -11,12 +11,9 @@ set yrange [0:*]
 
 set ylabel "Speedup"
 
-set style line 1 linecolor rgb "#0060ad"
-set style line 2 linecolor rgb "#dd181f"
-
 unset key
 
-plot "benchmark_result.csv" every ::1::7 u ($4/$3):xtic(1) w boxes \
-    ls 1 fs pattern 2
+plot "benchmark_result.csv" every ::1::6 u ($4/$3):xtic(1) w boxes \
+    lc black fs pattern 2
 
 unset output

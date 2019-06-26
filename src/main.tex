@@ -321,17 +321,22 @@ nor a special program needs to be executed in the job.
 
 \subsection{Interconnect Manager}
 
-The interconnect manager is responsible for computing and installing optimal
-routes for each job.
+The primary purpose of the interconnect manager is to compute and install
+optimal routing for each job.
 
-\begin{itemize}
-    \item Receiving notifications from the scheduler plugin
-    \item Maintaining the state of the cluster
-    \item Computing optimal routing for each job
-    \item Installing the computed routing to interconnect
-\end{itemize}
+To compute the optimal routing, the interconnect manager needs to know how
+the MPI processes constituting a job is laid out in the cluster. These
+information are received from the scheduler plugin integrated into the Slurm
+scheduler. Furthermore, the communication pattern of a job is also received
+from the plugin if the user has specified the communication pattern. These
+information are kept on an external database (currently
+SQLite\footnote{\url{https://www.sqlite.org/index.html}} is used) for
+fault-tolerance and having multiple instances of the interconnect manager.
 
-SQLite\footnote{\url{https://www.sqlite.org/index.html}}
+Once received these information from the scheduler plugin, the interconnect
+manager computes the optimal routing for based on these information. The
+computed routing is then installed through the OpenFlow controller to each
+switch in the interconnect.
 
 \section{Evaluation}\label{kt:sec:iv}
 
@@ -340,10 +345,31 @@ effectiveness of our proposed framework.
 
 \subsection{Evaluation Environment}
 
+We executed a set of benchmarks on a cluster and compared the communication
+time of each benchmark with and without our framework.
+Table~\ref{kt:tbl:miniapps} shows a list of communication benchmarks used in
+the evaluation. CG and FT are taken from the NAS parallel benchmark
+suite~\cite{Bailey1991}. Stencil2D, Stencil3D and SpMV are developed by us.
+
+\begin{table}
+\caption{Communication benchmarks used in the evaluation}%
+\label{kt:tbl:miniapps}
+\begin{tabular}{ll}
+\toprule
+Name      & Description \\ \midrule
+CG        & Solves a sparse linear system using the conjugate gradient method \\
+FT        & Solves partial differential equation using FFT and IFFT           \\
+Stencil2D & A two-dimensional stencil code                                    \\
+Stencil3D & A three-dimensional stencil code                                  \\
+SpMV      & A sparse-matrix vector multiplication kernel                      \\ \bottomrule
+\end{tabular}
+\end{table}
+
 The evaluation experiment was conducted on a small-scale cluster composed of
 20 compute nodes connected through a two-tier fat-tree interconnect as
 illustrated in Fig.~\ref{kt:fig:cluster}. Each compute node is equipped with
-two quad-core Intel Xeon E5520 CPUs.
+two quad-core Intel Xeon E5520 CPUs. A single NEC PF5240 OpenFlow switch is
+divided into six virtual switches to compose a fat-tree topology.
 
 \begin{figure}
     \centering
@@ -352,23 +378,11 @@ two quad-core Intel Xeon E5520 CPUs.
     \label{kt:fig:cluster}
 \end{figure}
 
-\begin{table}
-\caption{Kernels used in the evaluation}%
-\label{kt:tbl:openflow-messages}
-\begin{tabular}{ll}
-\toprule
-Name      & Description \\ \midrule
-CG        & Solves a sparse linear system using the conjugate gradient method \\
-LU        & Solves a dense linear system by using LU decomposition            \\
-FT        &             \\
-Stencil2D & A two-dimensional stencil solver           \\
-Stencil3D & A three dimensional stencil solver            \\
-Butterfly &             \\
-SpMV      & A sparse-matrix vector kernel            \\ \bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{Evaluation Result}
+
+Figure~\ref{kt:fig:benchmark} shows the relative speedup of communication time
+when using our framework.
 
 \begin{figure}
     \centering
@@ -378,6 +392,10 @@ SpMV      & A sparse-matrix vector kernel            \\ \bottomrule
 \end{figure}
 
 \section{Conclusion}\label{kt:sec:v}
+
+In this paper,
+
+As a future work,
 
 \begin{acknowledgement}
 This work was supported by JSPS KAKENHI Grant Number 17K00168.
