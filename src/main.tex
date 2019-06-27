@@ -105,68 +105,78 @@ Cras dapibus. Vivamus elementum semper.}
 \section{Introduction}
 
 The demand for computing performance of high-performance computing (HPC)
-systems has been every-growing. In fact, exascale HPC systems are now on the
-horizon. To meet the sustained growth of HPC systems, the high-performance
-network that interconnects the computing nodes composing a cluster, or
+clusters has been every-growing. In fact, exascale machines are now on the
+horizon. To meet the sustained growth of HPC clusters, the high-performance
+network that interconnects the compute nodes composing a cluster, or
 \textit{interconnect}, needs to be enhanced to achieve larger scale, higher
 bandwidth and lower latency. As a result, the interconnect now accounts for a
 significant portion of total financial cost and power consumption of an HPC
-system~\cite{Michelogiannakis2017}.
+cluster~\cite{Michelogiannakis2017}.
 
-Until today, the established strategy to design a interconnect has been
-\textit{over-provisioning}, where bandwidth and routes are over-provisioned to
-accommodate any application with arbitrary communication pattern will not
-experience degradation of communication performance. The reason for this
-choice is two-fold: first, a production HPC system is usually shared by many
-users, where each user runs different applications. Therefore, it is not
-realistic to tailor an interconnect to a communication pattern of a single
-application. Second, conventional networking hardware used in interconnects do
-not allow administrators to change their configuration on-the-fly. Therefore,
-the only choice is to over-provision the interconnect with abundant bandwidth
-and routes. However, an over-subscribed design is becoming increasingly
-challenging to implement due to its rapidly rising financial cost and power
-consumption. We believe that dynamically controlling the traffic in the
-interconnect based on the communication pattern of an application could
-overcome this problem.
+Until today, the established strategy for designing an interconnect has been
+\textit{over-provisioning}, where extra bandwidth and routes are provisioned
+in the interconnect. The reason for adopting this design strategy is two-fold.
+First, networking hardware used in conventional interconnects do not allow
+administrators to change their configurations on-the-fly. Therefore, the
+interconnect needs to be provisioned with abundant bandwidth and routes so
+that any application with arbitrary communication pattern can experience the
+same degree of communication performance. Second, a production HPC cluster is
+usually shared among many users where each user runs different applications.
+Therefore, tailoring an interconnect to a single application with a specific
+communication pattern is unrealistic.
 
-However, with the recent emergence of networking technologies that introduces
-programmability into networks, the assumption that interconnects are static
-and cannot be reconfigured does not hold anymore. A prominent example of such
-networking technology is Software-Defined Networking (SDN), which is a novel
-networking architecture that allows administrators to dynamically and flexibly
-control the network like a software.
+
+However, an over-subscribed design is becoming increasingly challenging to
+implement due to its rapidly rising financial cost and power consumption.
+Meanwhile, the assumption that interconnects are static and cannot be
+reconfigured does not hold anymore with the recent emergence of networking
+technologies that introduces network programmability. A prominent example of
+such networking technology is Software-Defined Networking~(SDN), which is a
+novel networking architecture that allows administrators to dynamically and
+flexibly control the network like a software. We believe that dynamically
+controlling the traffic in the interconnect based on the communication pattern
+of an application can alleviate traffic congestion in the interconnect and
+remove the need for excessive over-provisioning.
 
 Based on this idea, we have been developing on \textit{SDN-enhanced MPI}, a
 framework that integrates Software-Defined Networking (SDN) into Message
-Passing Interface (MPI). The goal of this framework is to dynamically control
-the traffic in the interconnect based on the MPI communication pattern of
-applications by utilizing the network programmability provided by SDN\@. To
-this end, we have demonstrated that individual MPI collectives are accelerated
-by utilizing SDN~\cite{Dashdavaa2014,Takahashi2014}. In addition, we have
-designed and implemented a mechanism to synchronize the progress of an
-application and the reconfiguration of the
+Passing Interface~(MPI)~\cite{MPIForum2012}. The goal of this framework is to
+mitigate congestion in the interconnect and improve MPI communication
+performance
+
+dynamically route the traffic in the interconnect based on the communication
+patterns of MPI applications with an aim
+
+by utilizing the network programmability provided
+by SDN\@. To this end, we have demonstrated that individual MPI collectives
+are accelerated by utilizing SDN~\cite{Dashdavaa2014,Takahashi2014}.
+Furthermore, we have designed and implemented a mechanism to synchronize the
+progress of an application and the reconfiguration of the
 interconnect~\cite{Takahashi2015,Takahashi2018}. Furthermore, we have
-developed a toolset consisting of (1) a profiler to extract communication
-pattern from applications and (2) an interconnect simulator predict the
-traffic flow generated in an interconnect~\cite{Takahashi2017}.
+developed a toolset for facilitating the development of SDN-enhanced MPI that
+consists of a profiler to extract communication pattern from applications and
+an interconnect simulator to predict the traffic generated in an
+interconnect~\cite{Takahashi2017}.
 
-Although our work so far has demonstrated that individual MPI applications can
-be accelerated through the application of SDN, a key issue has remained
+Although our work so far has successfully demonstrated that MPI applications
+can be accelerated through the use of of SDN, a key limitation has remained
 towards the deployment of our framework on production clusters: our current
-SDN-enhanced MPI framework does not allow the concurrent execution of multiple
-applications on a cluster. As mentioned earlier, clusters are usually shared
-among many users. Therefore, it is crucial that multiple jobs are able to be
-executed at the same time on a cluster.
+SDN-enhanced MPI framework does not support the concurrent execution of
+multiple applications on a cluster. As mentioned earlier, clusters are usually
+shared among many users. Therefore, it is crucial for the practical use for
+our framework that multiple jobs are able to be executed at the same time on a
+cluster.
 
-In this paper, we aim to solve this limitation by integrating our framework
+In this paper, we aim to lift this limitation and allow
+
+Specifically, we by integrating our framework
 into the job scheduler of a cluster.
-
 The rest of this paper is organized as follows. Section~\ref{kt:sec:ii}
-describes the key technologies behind our proposal and challenges to be
-tackled. Section~\ref{kt:sec:iii} presents the architecture of the proposed
-framework. Section~\ref{kt:sec:iv} shows the preliminary evaluation result of
-the proposed framework. Section~\ref{kt:sec:v} concludes this paper and
-discusses future work.
+gives an overview of the key technologies behind our proposal and clarifies
+the challenges to be tackled. Section~\ref{kt:sec:iii} presents the
+architecture of the proposed framework. Section~\ref{kt:sec:iv} shows the
+preliminary evaluation result of the proposed framework.
+Section~\ref{kt:sec:v} concludes this paper and discusses future work.
 
 \section{Background}\label{kt:sec:ii}
 
@@ -194,7 +204,7 @@ by installing and updating the flow table on each switch in the network. This
 paper assumes that the interconnect of the cluster is deployed with OpenFlow
 switches.
 
-\subsection{Job Scheduler}
+\subsection{Job Scheduler}\label{kt:sec:ii-jms}
 
 A job scheduler is a system that manages the computing resources such as CPU
 and memory in a cluster. The job scheduler accepts \textit{job} submissions
@@ -202,8 +212,8 @@ from users, which is a request to run an application on the cluster and a set
 of resource to run the application. The job scheduler allocates computing
 resource in the cluster and launch the application on the allocated computing
 resources. If there are not enough available resource in the cluster, the job
-will queued for later execution. Job schedulers used in production HPC systems
-include Slurm~\cite{Yoo2003}, PBS
+will queued for later execution. Job schedulers used in production HPC
+clusters include Slurm~\cite{Yoo2003}, PBS
 Professional\footnote{\url{https://www.pbspro.org/}},
 Torque\footnote{\url{https://www.adaptivecomputing.com/products/torque/}} and
 UNIVA Grid Engine\footnote{\url{http://www.univa.com/products/}}. In this
@@ -230,15 +240,19 @@ an interactive job) and squeue (list queued jobs).
 
 \subsection{Challenges}
 
+As described in Section~\ref{kt:sec:ii-jms}, production HPC clusters usually
+employ job schedulers to share their computing resources among multiple
+users. Since the job scheduler decides when to run which job, which compute
+node to assign to a job, and how to distribute the processes constituting a
+job,
 
-Since the job scheduler decided when to run which job,
-. Furthermore,
 
-\begin{itemize}
-    \item Acquiring
-    \item Node allocation and process mapping:
-    \item Transparency from users:
-\end{itemize}
+Meanwhile, the proposed framework should be transparent from users as much as
+possible. A simple approach to obtain node allocation
+
+to run a special daemon within the job. Another. However, both of these
+approaches require the user to explicit. Therefore,
+
 
 \section{Proposal}\label{kt:sec:iii}
 
@@ -247,6 +261,8 @@ framework. Subsequently, individual components of the framework are described
 in detail.
 
 \subsection{Overview}
+
+
 
 Figure~\ref{kt:fig:architecture} shows the overall architecture of the
 proposed SDN-enhanced MPI framework. The proposed framework mainly consists of
