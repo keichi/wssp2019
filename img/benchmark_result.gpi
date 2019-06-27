@@ -1,4 +1,4 @@
-set terminal postscript eps color enhanced size 12cm, 8cm font ",13"
+set terminal postscript eps color enhanced size 11cm, 7cm font ",13"
 
 set output "benchmark_result.eps"
 
