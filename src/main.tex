@@ -350,28 +350,6 @@ effectiveness of our proposed framework.
 
 \subsection{Evaluation Environment}
 
-We executed a set of benchmarks on a cluster and compared the communication
-time of each benchmark with and without our framework.
-Table~\ref{kt:tbl:miniapps} shows a list of communication benchmarks used in
-the evaluation. CG and FT are taken from the NAS parallel benchmark
-suite~\cite{Bailey1991}. Stencil2D, Stencil3D and SpMV are developed by us.
-All benchmarks were executed with 160 processes.
-
-\begin{table}
-\caption{Benchmarks used in the evaluation}%
-\label{kt:tbl:miniapps}
-\begin{tabular}{ll}
-\toprule
-Name      & Description \\ \midrule
-CG        & Solves a sparse linear system using the conjugate gradient method \\
-FT        & Solves partial differential equation using FFT and IFFT           \\
-Stencil2D & A two-dimensional stencil code                                    \\
-Stencil3D & A three-dimensional stencil code                                  \\
-Butterfly & A three-dimensional stencil code                                  \\
-SpMV      & A sparse-matrix vector multiplication kernel                      \\ \bottomrule
-\end{tabular}
-\end{table}
-
 The evaluation experiment was conducted on a small-scale cluster composed of
 20 compute nodes connected through a two-tier fat-tree interconnect as
 illustrated in Fig.~\ref{kt:fig:cluster}. Each compute node is equipped with
@@ -389,6 +367,28 @@ interconnect.
     \label{kt:fig:cluster}
 \end{figure}
 
+We executed a set of benchmarks on a cluster and compared the communication
+time of each benchmark with and without our framework.
+Table~\ref{kt:tbl:miniapps} shows a list of communication benchmarks used in
+the evaluation. CG and FT are taken from the NAS parallel benchmark
+suite~\cite{Bailey1991}. Stencil2D, Stencil3D and SpMV are developed by us.
+All benchmarks were executed with 160 processes. In other words, we ran a
+single process for every CPU core in the cluster.
+
+\begin{table}
+\caption{Benchmarks used in the evaluation}%
+\label{kt:tbl:miniapps}
+\begin{tabular}{ll}
+\toprule
+Name      & Description \\ \midrule
+CG        & Solves a sparse linear system using the conjugate gradient method \\
+FT        & Solves partial differential equation using FFT and IFFT           \\
+Stencil2D & A two-dimensional stencil code                                    \\
+Stencil3D & A three-dimensional stencil code                                  \\
+Butterfly & A three-dimensional stencil code                                  \\
+SpMV      & A sparse matrix-vector multiplication kernel                      \\ \bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Evaluation Result}
 
@@ -398,8 +398,18 @@ achieved 1.29$\times$, 1.18$\times$, and 2.56$\times$ speedup, respectively.
 In contrast, FT, Stencil2D, and Stencil3D did not exhibit a clear performance
 gain by using our framework.
 
-We believe this trend can be explained from the following reason: FT performs
-an all-to-all communication between processes.
+We believe this trend can be explained from the following reason. FT performs
+all-to-all communication between processes. This lack of locality makes it
+challenging to efficiently map the communication pattern into the interconnect
+In contrast, Stencil2D and Stencil3D perform nearest neighbor communication in
+a two-dimensional or three-dimensional process grid. As a result, most of the
+communication happens within a compute node or within a leaf switch, which
+makes the difference in routing algorithms irrelevant.
+
+The three benchmarks that benefited from our framework (CG, Butterfly and
+SpMV) perform both local and remote communication between processes.
+Therefore, it is possible to efficiently utilize the multiple paths in the
+interconnect.
 
 \begin{figure}
     \centering
