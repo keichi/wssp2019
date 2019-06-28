@@ -61,46 +61,29 @@ Cybermedia Center, Osaka University, 5-1 Mihogaoka, Ibaraki, Osaka, Japan\\
 \email{{date, watashiba-y, kido, shimojo}@cmc.osaka-u.ac.jp}}
 \maketitle
 
-\abstract*{Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean
-commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et
-magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis,
-ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis
-enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In
-enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum
-felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus
-elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula,
-porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus
-in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius
-laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue.
-Curabitur ullamcorper ultricies nisi. Nam eget dui. Lorem ipsum dolor sit
-amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean
-massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur
-ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis,
-sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet
-nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis
-vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt.
-Cras dapibus. Vivamus elementum semper.}
+\abstract*{%
+SDN-enhanced MPI aims to improve MPI communication performance by
+dynamically steering the traffic in the interconnect based on the
+communication pattern of applications. This paper tackled the limitation of
+SDN-enhanced MPI that multiple jobs cannot be executed concurrently.
+Specifically, we integrated SDN-enhanced MPI with the job scheduler. A
+preliminary evaluation conducted using benchmarks demonstrated that our
+framework achieves up to 2.56$\times$ speedup in communication. As a future
+work, we would like to evaluate our framework using a large job set containing
+diverse real-world applications.
+}
 
 
-\abstract{Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean
-commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et
-magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis,
-ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis
-enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In
-enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum
-felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus
-elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula,
-porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus
-in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius
-laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue.
-Curabitur ullamcorper ultricies nisi. Nam eget dui. Lorem ipsum dolor sit
-amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean
-massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur
-ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis,
-sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet
-nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis
-vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt.
-Cras dapibus. Vivamus elementum semper.}
+\abstract{%
+SDN-enhanced MPI aims to improve MPI communication performance by dynamically
+steering the traffic in the interconnect based on the communication pattern of
+applications. This paper tackled the limitation of SDN-enhanced MPI that
+multiple jobs cannot be executed concurrently. Specifically, we integrated
+SDN-enhanced MPI with the job scheduler. A preliminary evaluation conducted
+using benchmarks demonstrated that our framework achieves up to 2.56$\times$
+speedup in communication. As a future work, we would like to evaluate our
+framework using a large job set containing diverse real-world applications.
+}
 
 \section{Introduction}\label{kt:sec:i}
 
@@ -197,7 +180,7 @@ the interconnect of the cluster is built using OpenFlow switches.
 
 \subsection{Job Scheduler}\label{kt:sec:ii-jms}
 
-As mentioned in Section~\ref{kt:sec:i}, a production HPC cluster is a shared
+As mentioned in Sect.~\ref{kt:sec:i}, a production HPC cluster is a shared
 environment. Therefore, the computing resources within the cluster need to be
 efficiently managed and fairly distributed among multiple users.
 
