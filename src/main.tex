@@ -46,8 +46,9 @@
 
 \begin{document}
 
-\title*{An MPI Framework for HPC Clusters Deployed with Software-Defined
-Networking}
+\title*{Integrating SDN-enhanced MPI \\ with Job Scheduler to Support Shared
+Clusters}
+
 \author{Keichi Takahashi, Susumu Date, Yasuhiro Watashiba, Yoshiyuki Kido,
 Shinji Shimojo}
 \institute{Keichi Takahashi \at Nara Institute of Science and Technology,
@@ -55,6 +56,7 @@ Shinji Shimojo}
 \and Susumu Date, Yasuhiro Watashiba, Yoshiyuki Kido, Shinji Shimojo \at
 Cybermedia Center, Osaka University, 5-1 Mihogaoka, Ibaraki, Osaka, Japan\\
 \email{{date, watashiba-y, kido, shimojo}@cmc.osaka-u.ac.jp}}
+
 \maketitle
 
 \abstract*{%
@@ -64,9 +66,9 @@ aim of SDN-enhanced MPI is to improve MPI communication performance by
 dynamically steering the traffic within the interconnect based on the
 communication pattern of applications. A major limitation in the current
 implementation of SDN-enhanced MPI is that multiple jobs cannot be executed
-concurrently. This paper lifts this limitation  by integrating SDN-enhanced
-MPI with the job scheduler of the cluster. Specifically, we develop a plugin
-for the scheduler that collects and reports the job information to the
+concurrently. This paper removes this limitation  by integrating SDN-enhanced
+MPI with the job scheduler of the cluster. Specifically, we have developed a
+plugin for the scheduler that collects and reports the job information to the
 interconnect controller. A preliminary evaluation demonstrated that
 applications can gain up to 2.56$\times$ speedup in communication.
 }
@@ -78,80 +80,80 @@ aim of SDN-enhanced MPI is to improve MPI communication performance by
 dynamically steering the traffic within the interconnect based on the
 communication pattern of applications. A major limitation in the current
 implementation of SDN-enhanced MPI is that multiple jobs cannot be executed
-concurrently. This paper lifts this limitation  by integrating SDN-enhanced
-MPI with the job scheduler of the cluster. Specifically, we develop a plugin
-for the scheduler that collects and reports the job information to the
+concurrently. This paper removes this limitation  by integrating SDN-enhanced
+MPI with the job scheduler of the cluster. Specifically, we have developed a
+plugin for the scheduler that collects and reports the job information to the
 interconnect controller. A preliminary evaluation demonstrated that
 applications can gain up to 2.56$\times$ speedup in communication.
 }
 
 \section{Introduction}\label{kt:sec:i}
 
-The demand for computing performance of high-performance computing (HPC)
-clusters has been every-growing. In fact, exascale machines are now on the
-horizon. To meet the sustained growth of HPC clusters, the high-performance
-network that interconnects the compute nodes composing a cluster, or
-\textit{interconnect}, needs to be enhanced to achieve larger scale, higher
-bandwidth and lower latency. As a result, the interconnect now accounts for a
-significant portion of total financial cost and power consumption of an HPC
+The demand for high-performance computing (HPC) clusters has been
+every-growing. In fact, exascale machines are now on the horizon. To meet the
+sustained growth of HPC clusters, the high-performance network that
+interconnects the compute nodes composing a cluster, or \textit{interconnect},
+needs to be enhanced to achieve larger scale, higher bandwidth and lower
+latency. As a result, the interconnect now accounts for a significant portion
+of total financial cost and power consumption of an HPC
 cluster~\cite{Michelogiannakis2017}.
 
 Until today, the established strategy for designing an interconnect has been
-\textit{over-provisioning}, where extra bandwidth and routes are provisioned
-in the interconnect. The reason for adopting this design strategy is two-fold.
-First, networking hardware used in conventional interconnects do not allow
+over-provisioning, where extra bandwidth and routes are provisioned in the
+interconnect. The reason for adopting this design strategy is two-fold. First,
+networking hardware used in conventional interconnects do not allow
 administrators to change their configurations on-the-fly. Therefore, the
 interconnect needs to be provisioned with abundant bandwidth and routes so
-that any application with arbitrary communication pattern can experience the
-same degree of communication performance. Second, a production HPC cluster is
-usually shared among many users where each user runs different applications.
+that a specific application does not suffer from degradation of communication
+performance compared to others. Second, a production HPC cluster is usually
+shared among many users where each user runs different applications.
 Therefore, tailoring an interconnect to a single application with a specific
 communication pattern is unrealistic.
 
 However, an over-subscribed design is becoming increasingly challenging to
 implement due to its rapidly rising financial cost and power consumption.
-Meanwhile, the assumption that interconnects are static and cannot be
-reconfigured does not hold anymore with the recent emergence of networking
-technologies that introduces network programmability. A prominent example of
+Meanwhile, the long-standing assumption that interconnects are static and
+cannot be reconfigured no longer holds with the recent emergence of networking
+technologies that introduce network programmability. A prominent example of
 such networking technology is Software-Defined Networking~(SDN), which is a
 novel networking architecture that allows administrators to dynamically and
-flexibly control the network like a software. We believe that dynamically
-controlling the traffic in the interconnect based on the communication pattern
-of an application can alleviate traffic congestion in the interconnect and
-remove the need for excessive over-provisioning.
+flexibly control network devices like a software. We believe that dynamically
+controlling the traffic in the interconnect in response to the communication
+pattern of an application can alleviate traffic congestion in the interconnect
+and remove the need for excessive over-provisioning.
 
-Based on this idea, we have been developing on \textit{SDN-enhanced MPI}, a
-framework that integrates Software-Defined Networking (SDN) into Message
-Passing Interface~(MPI)~\cite{MPIForum2012}. The goal of this framework is to
-mitigate congestion in the interconnect and improve MPI communication
-performance by dynamically steering the traffic in the interconnect based on
-the communication pattern of application. To this end, we have demonstrated
-that individual MPI collectives are accelerated by utilizing
-SDN~\cite{Dashdavaa2014,Takahashi2014}. Furthermore, we have designed and
-implemented a mechanism to synchronize the progress of an application and the
-reconfiguration of the interconnect~\cite{Takahashi2015,Takahashi2018}.
-Furthermore, we have developed a toolset for facilitating the development of
-SDN-enhanced MPI that consists of a profiler to extract communication pattern
-from applications and an interconnect simulator to predict the traffic
-generated in an interconnect~\cite{Takahashi2017}.
+Based on this idea, we have been developing on \textit{SDN-enhanced
+MPI}~\cite{Date2016}, a framework that integrates Software-Defined Networking
+(SDN) into Message Passing Interface~(MPI)~\cite{MPIForum2012}. The goal of
+this framework is to mitigate congestion in the interconnect and improve MPI
+communication performance by dynamically steering the traffic in the
+interconnect based on the communication pattern of application. To this end,
+we have demonstrated that individual MPI collectives are accelerated by
+utilizing SDN~\cite{Dashdavaa2014,Takahashi2014}. Furthermore, we have
+designed and implemented a mechanism to synchronize the progress of an
+application and the reconfiguration of the
+interconnect~\cite{Takahashi2015,Takahashi2018}. Furthermore, we have
+developed a toolset for facilitating the development of SDN-enhanced MPI that
+consists of a profiler to extract communication pattern from applications and
+an interconnect simulator to predict the traffic generated in an
+interconnect~\cite{Takahashi2017}.
 
 Although our work so far has successfully demonstrated that MPI applications
-can be accelerated through the application of SDN, a key limitation has
+can be accelerated through the application of SDN, a limitation has still
 remained towards the deployment of our framework on production clusters: our
 current SDN-enhanced MPI framework does not support the concurrent execution
-of multiple applications on a cluster. As mentioned earlier, clusters are
-usually shared by many users. Therefore, the ability of running multiple jobs
-on a cluster is vital for the practical use of our framework.
+of multiple applications on a cluster. Since production clusters are usually
+shared by many users, it is vital that our framework supports clusters running
+multiple jobs for the practicality.
 
-In this paper, we aim to lift this limitation and enhance SDN-enhanced MPI so
-that multiple jobs can be executed concurrently. Specifically, we achieve this
-by integrating our framework into the job scheduler of a cluster. The rest of
-this paper is organized as follows. Section~\ref{kt:sec:ii} gives an overview
-of the key technologies behind our proposal and clarifies the challenges to be
-tackled. Section~\ref{kt:sec:iii} presents the architecture of the proposed
-framework. Section~\ref{kt:sec:iv} shows the preliminary evaluation result of
-the proposed framework. Section~\ref{kt:sec:v} concludes this paper and
-discusses future work.
+In this paper, we aim to lift this limitation by integrating our framework
+into the job scheduler of a cluster. The rest of this paper is organized as
+follows. Section~\ref{kt:sec:ii} gives an overview of the key technologies
+behind our proposal and clarifies the challenges to be tackled.
+Section~\ref{kt:sec:iii} presents the architecture of the proposed framework.
+Section~\ref{kt:sec:iv} shows the preliminary evaluation result of the
+proposed framework. Section~\ref{kt:sec:v} concludes this paper and discusses
+future work.
 
 \section{Background}\label{kt:sec:ii}
 
@@ -182,22 +184,23 @@ the interconnect of the cluster is built using OpenFlow switches.
 
 As mentioned in Sect.~\ref{kt:sec:i}, a production HPC cluster is a shared
 environment. Therefore, the computing resources within the cluster need to be
-efficiently managed and fairly distributed among multiple users.
+efficiently managed and distributed among multiple users.
 
 To achieve this goal, the administrator of a cluster usually deploys a
 \textit{job scheduler}. A job scheduler is a system that manages the computing
-resources such as CPU, GPU and memory in a cluster. The job scheduler accepts
-\textit{job} submissions from users, which is a request to run an application
-on the cluster and a set of resource to run the application. The job scheduler
-allocates computing resource in the cluster and launch the application on the
-allocated computing resources. If there are insufficient available resource in
-the cluster, the job will be queued for later execution. Job schedulers used
-in production HPC clusters include Slurm~\cite{Yoo2003}, PBS
+resources such as CPUs, GPUs and memories in a cluster. The job scheduler
+accepts \textit{job} submissions from users, which are requests to run
+applications on the cluster accompanied by a set of resource requests to run
+the application. The job scheduler allocates computing resources in the
+cluster and launch the application on the allocated computing resources. If
+there are insufficient available resources in the cluster, the job will be
+queued for later execution. Job schedulers used in production HPC clusters
+include Slurm~\cite{Yoo2003}, PBS
 Professional\footnote{\url{https://www.pbspro.org/}},
 Torque\footnote{\url{https://www.adaptivecomputing.com/products/torque/}} and
 Grid Engine\footnote{\url{http://www.univa.com/products/}}. In this paper,
 Slurm is assumed to be deployed on the cluster since it is one of the most
-widely adopted free and open-source job schedulers.
+widely adopted open-source job schedulers.
 
 \begin{figure}
     \centering
@@ -208,14 +211,15 @@ widely adopted free and open-source job schedulers.
 
 Figure~\ref{kt:fig:slurm} illustrates the architecture of Slurm. Slurm employs
 a \textit{master-worker} architecture like many other job schedulers. The
-master, slurmctld, oversees the status of every compute node in the cluster.
-It receives job submissions from users, allocates computing resources to a job
-and launches the job by instructing to the workers. Optionally, slurmdbd is
-used for logging and accounting purposes. Each compute node runs a worker,
-slurmd, that monitors the status of the compute node, communicates with
-slurmctld and launches user applications when requested by slurmctld. Users
-interact with slurmctld through utilities such as sbatch (submits a job), srun
-(submits an interactive job) and squeue (list queued jobs).
+master, \textit{slurmctld}, oversees the status of every compute node in the
+cluster. Each compute node runs a worker, \textit{slurmd}, that monitors the
+status of the compute node, communicates with slurmctld and launches user
+applications when requested by slurmctld. Slurmctld receives job submissions
+from users, allocates computing resources to the job and dispatches the job by
+instructing the workers. Optionally, \textit{slurmdbd} is used for logging and
+accounting purposes. Users interact with slurmctld through utilities such as
+sbatch (submits a job), srun (submits an interactive job) and squeue (list
+queued jobs).
 
 \subsection{Challenges}
 
@@ -245,9 +249,9 @@ in detail.
 
 \subsection{Overview}
 
-The basic idea behind the proposed framework is to integrate the interconnect
-manager with the job scheduler so that the reconfiguration of the interconnect
-can be performed in accordance with the execution of jobs.
+The basic idea behind the proposed framework is to integrate the SDN-enhanced
+MPI framework with the job scheduler so that the reconfiguration of the
+interconnect can be performed in accordance with the execution of jobs.
 Figure~\ref{kt:fig:architecture} illustrates the overall architecture of the
 proposed SDN-enhanced MPI framework. The proposed framework mainly consists of
 three components: (1)~interconnect manager, (2)~scheduler plugin, and
@@ -267,8 +271,8 @@ provides a REST API to install, query, update and remove flows.
     \label{kt:fig:architecture}
 \end{figure}
 
-The scheduler plugin and the interconnect manager communicate with
-one another using RPCs. Specifically, gRPC\footnote{\url{https://grpc.io/}}, which is an
+The scheduler plugin and the interconnect manager communicate with one another
+using RPCs. Specifically, gRPC\footnote{\url{https://grpc.io/}}, which is an
 RPC framework built on top of HTTP/2, is used. The main reason behind this
 design choice is because gRPC can automatically generate server and client
 codes from an interface definition of remote procedures. Therefore, using gRPC
@@ -376,9 +380,9 @@ We executed a set of benchmarks on a cluster and compared the communication
 time of each benchmark with and without our framework.
 Table~\ref{kt:tbl:miniapps} shows a list of communication benchmarks used in
 the evaluation. CG and FT are taken from the NAS parallel benchmark
-suite~\cite{Bailey1991}. Stencil2D, Stencil3D and SpMV were developed by us.
-All benchmarks were executed using 160 processes. In other words, we ran a
-single process for every CPU core in the cluster.
+suite~\cite{Bailey1991}. Stencil2D, Stencil3D, Butterfly and SpMV were
+developed by us. All benchmarks were executed using 160 processes. In other
+words, we ran a single process for every CPU core in the cluster.
 
 \begin{table}
 \caption{Benchmarks used in the evaluation}%
@@ -435,7 +439,7 @@ speedup in communication. As a future work, we would like to evaluate our
 framework using a large job set containing diverse real-world applications.
 
 \begin{acknowledgement}
-This work was supported by JSPS KAKENHI Grant Number 17K00168.
+This work was supported by JSPS KAKENHI Grant Number JP17K00168 and JP26330145.
 \end{acknowledgement}
 
 \bibliographystyle{spmpsci}
