@@ -68,9 +68,9 @@ communication pattern of applications. A major limitation in the current
 implementation of SDN-enhanced MPI is that multiple jobs cannot be executed
 concurrently. This paper removes this limitation  by integrating SDN-enhanced
 MPI with the job scheduler of the cluster. Specifically, we have developed a
-plugin for the scheduler that collects and reports the job information to the
-interconnect controller. A preliminary evaluation demonstrated that
-applications can gain up to 2.56$\times$ speedup in communication.
+plugin for the job scheduler that collects and reports the job information to
+the interconnect controller. A preliminary evaluation demonstrated that
+applications could gain up to 2.56$\times$ speedup in communication.
 }
 
 \abstract{%
@@ -82,15 +82,15 @@ communication pattern of applications. A major limitation in the current
 implementation of SDN-enhanced MPI is that multiple jobs cannot be executed
 concurrently. This paper removes this limitation  by integrating SDN-enhanced
 MPI with the job scheduler of the cluster. Specifically, we have developed a
-plugin for the scheduler that collects and reports the job information to the
-interconnect controller. A preliminary evaluation demonstrated that
-applications can gain up to 2.56$\times$ speedup in communication.
+plugin for the job scheduler that collects and reports the job information to
+the interconnect controller. A preliminary evaluation demonstrated that
+applications could gain up to 2.56$\times$ speedup in communication.
 }
 
 \section{Introduction}\label{kt:sec:i}
 
 The demand for high-performance computing (HPC) clusters has been
-every-growing. In fact, exascale machines are now on the horizon. To meet the
+evergrowing. In fact, exascale machines are now on the horizon. To meet the
 sustained growth of HPC clusters, the high-performance network that
 interconnects the compute nodes composing a cluster, or \textit{interconnect},
 needs to be enhanced to achieve larger scale, higher bandwidth and lower
@@ -122,7 +122,7 @@ controlling the traffic in the interconnect in response to the communication
 pattern of an application can alleviate traffic congestion in the interconnect
 and remove the need for excessive over-provisioning.
 
-Based on this idea, we have been developing on \textit{SDN-enhanced
+Based on this idea, we have been developing \textit{SDN-enhanced
 MPI}~\cite{Date2016}, a framework that integrates Software-Defined Networking
 (SDN) into Message Passing Interface~(MPI)~\cite{MPIForum2012}. The goal of
 this framework is to mitigate congestion in the interconnect and improve MPI
@@ -165,7 +165,7 @@ dynamically and flexibly control the network as if the network was a software.
 In conventional networking architectures, the \textit{control plane}, which
 makes the decision on how to handle packets, and the \textit {data plane},
 which forwards packets, are tightly coupled together on a single networking
-device such as a switch. In contrast, SDN separates these the two planes into
+device such as a switch. In contrast, SDN separates these two planes into
 different hardware: the data plane is handled by each networking device,
 whereas the control plane is handled by a centralized software controller.
 Administrators are able to dynamically and flexibly control the network by
@@ -192,7 +192,7 @@ resources such as CPUs, GPUs and memories in a cluster. The job scheduler
 accepts \textit{job} submissions from users, which are requests to run
 applications on the cluster accompanied by a set of resource requests to run
 the application. The job scheduler allocates computing resources in the
-cluster and launch the application on the allocated computing resources. If
+cluster and launches the application on the allocated computing resources. If
 there are insufficient available resources in the cluster, the job will be
 queued for later execution. Job schedulers used in production HPC clusters
 include Slurm~\cite{Yoo2003}, PBS
@@ -218,15 +218,15 @@ applications when requested by slurmctld. Slurmctld receives job submissions
 from users, allocates computing resources to the job and dispatches the job by
 instructing the workers. Optionally, \textit{slurmdbd} is used for logging and
 accounting purposes. Users interact with slurmctld through utilities such as
-sbatch (submits a job), srun (submits an interactive job) and squeue (list
-queued jobs).
+\textit{sbatch} (submits a job), \textit{srun} (submits an interactive job)
+and \textit{squeue} (list queued jobs).
 
 \subsection{Challenges}
 
 Even though a job scheduler is useful for both administrators and users of a
 cluster, it causes a major challenge in SDN-enhanced MPI\@. The interconnect
-controller needs to know several information about a job to compute and
-install a routing to the interconnect. This information includes:
+controller needs to know several pieces of information about jobs to compute
+and install a routing to the interconnect. This information includes:
 
 \begin{itemize}
     \item When a job starts and finishes
@@ -258,11 +258,11 @@ three components: (1)~interconnect manager, (2)~scheduler plugin, and
 (3)~OpenFlow controller. The interconnect manager is responsible for computing
 optimized routes  for each job. The scheduler plugin is responsible for
 collecting and submitting the job information to the interconnect manager when
-a job has started or finished. The OpenFlow controller is responsible for
+a job starts or finishes. The OpenFlow controller is responsible for
 communicating with the OpenFlow switches and installing the routing generated
 by the interconnect manager. We reuse a generic OpenFlow controller provided
 by the Ryu\footnote{\url{https://osrg.github.io/ryu/}} OpenFlow framework that
-provides a REST API to install, query, update and remove flows.
+provides a suite of REST APIs to install, query, update and remove flows.
 
 \begin{figure}
     \centering
@@ -282,19 +282,19 @@ TCP/IP\@.
 \subsection{Scheduler Plugin}
 
 The scheduler plugin is responsible for collecting and sending information
-about a job every time a job has started or finished. As described earlier,
+about a job every time a job starts or finishes. As described earlier,
 the scheduler decides when to run each job. Furthermore, the node allocation
 and process mapping are unknown until the job starts. Therefore, a mechanism
-is needed to notify the interconnect manager about this information.
+is needed to notify the interconnect manager of this information.
 
-For this reason, we utilize a builtin plugin mechanism of Slurm, which is
+For this reason, we utilize a built-in plugin mechanism of Slurm, which is
 called Slurm Plug-in Architecture for Node and job Control (SPANK). SPANK
 allows developers to easily customize the job startup and cleanup routines of
 Slurm. SPANK plugins are not linked with Slurm itself and can be loaded during
 runtime. In addition, SPANK allows developers to add new options to the job
 script and job submission commands.
 
-Our SPANK-based plugin is loaded by all Slurm components and performs the
+Our SPANK plugin is loaded by all Slurm components and performs the
 following operations:
 
 \begin{itemize}
@@ -303,17 +303,17 @@ following operations:
         submitter, number of processes and communication pattern of the
         application to the interconnect manager. Currently the user
         needs to manually specify the communication pattern in the job script
-        as shown in Listing~\ref{kt:lst:script}.
-    \item \textbf{slurmd}: When slurmd is about to launch a job on a compute
-        node, our plugin sends the ID and name of the job, compute node ID,
-        and MPI rank number to the interconnect manager. This is used by the
-        interconnect manager to obtain the node allocation and process
+        as shown in Listing~\ref{kt:lst:script} (line 7).
+    \item \textbf{slurmd}: When slurmd is about to launch an application on a
+        compute node, our plugin sends the ID and name of the job, compute
+        node ID, and MPI rank number to the interconnect manager. This is used
+        by the interconnect manager to obtain the node allocation and process
         mapping. After this information is sent over to the interconnect
         manager, the plugin blocks until the routing are computed and
         installed to the interconnect. Once the routing is setup, the plugin
         returns control to Slurm. After that, the user application starts.
 
-        When a job has finished, the same information is send over to the
+        When a job finishes, the same information is sent over to the
         interconnect manager and blocks until the routings are uninstalled
         from the interconnect. After that, the rest of the cleanup is
         completed.
@@ -340,17 +340,17 @@ optimal routing for each job.
 
 To compute the optimal routing for a job, the interconnect manager needs to
 know how the MPI processes constituting a job is laid out on the cluster.
-This information are received from the scheduler plugin integrated into the
+This information is received from the scheduler plugin integrated into the
 Slurm scheduler. Furthermore, the communication pattern of a job is also
-received from the plugin if the user has specified the communication pattern.
+received from the plugin if the user specifies the communication pattern.
 This job information is persisted on an external database (currently
 SQLite\footnote{\url{https://www.sqlite.org/index.html}} is used) for
 fault-tolerance.
 
-Once the scheduler has received the job information, the manager computes the
-optimal routing for the job. The actual routing algorithm itself is pluggable
-and can be swapped out. The computed routing is then installed through the
-OpenFlow controller to each switch in the interconnect.
+Once the scheduler has received the job information, the interconnect manager
+computes the optimal routing for the job. The actual routing algorithm itself
+is pluggable and can be swapped out. The computed routing is then installed
+through the OpenFlow controller to each switch in the interconnect.
 
 \section{Evaluation}\label{kt:sec:iv}
 
@@ -364,10 +364,11 @@ The evaluation experiment was conducted on a small-scale cluster composed of
 (Fig.~\ref{kt:fig:cluster}). Each compute node is equipped with two quad-core
 Intel Xeon E5520 CPUs. In total, there are 160 CPU cores in the cluster. A
 single NEC PF5240 OpenFlow switch is divided into six virtual switches to
-compose a fat-tree topology. D-mod-K routing~\cite{Rodriguez2009} was chosen
-as the representative example of a conventional routing algorithm. D-mod-K
-routing statically distributes traffic flows across multiple paths in the
-interconnect based on the destination of a flow.
+compose a fat-tree topology. The switches are controlled by the interconnect
+manager using the OpenFlow 1.0 protocol. D-mod-K routing~\cite{Rodriguez2009}
+was chosen as the representative example of a conventional routing algorithm.
+D-mod-K routing statically distributes traffic flows across multiple paths in
+the interconnect based on the destination of a flow.
 
 \begin{figure}
     \centering
@@ -378,7 +379,7 @@ interconnect based on the destination of a flow.
 
 We executed a set of benchmarks on a cluster and compared the communication
 time of each benchmark with and without our framework.
-Table~\ref{kt:tbl:miniapps} shows a list of communication benchmarks used in
+Table~\ref{kt:tbl:miniapps} shows the list of communication benchmarks used in
 the evaluation. CG and FT are taken from the NAS parallel benchmark
 suite~\cite{Bailey1991}. Stencil2D, Stencil3D, Butterfly and SpMV were
 developed by us. All benchmarks were executed using 160 processes. In other
@@ -391,9 +392,9 @@ words, we ran a single process for every CPU core in the cluster.
 \toprule
 Name      & Description \\ \midrule
 CG        & Solves a sparse linear system using the Conjugate Gradient method \\
-FT        & Solves partial differential equation using FFT and IFFT           \\
-Stencil2D & A two-dimensional stencil solver                                  \\
-Stencil3D & A three-dimensional stencil solver                                \\
+FT        & Solves a partial differential equation using FFT and IFFT         \\
+Stencil2D & A two-dimensional stencil kernel                                  \\
+Stencil3D & A three-dimensional stencil kernel                                \\
 Butterfly & An Allreduce kernel commonly seen in deep learning                \\
 SpMV      & A sparse matrix-vector multiplication kernel                      \\ \bottomrule
 \end{tabular}
@@ -407,7 +408,7 @@ when using our framework. CG, Butterfly, and SpMV achieved 1.29$\times$,
 Stencil2D, and Stencil3D did not exhibit a clear performance gain by using our
 framework.
 
-We believe that this trend can be explained from the following reasons. FT
+We believe that this trend can be explained for the following reasons. FT
 performs all-to-all communication between processes. This complete lack of
 locality makes it challenging to efficiently map the communication pattern
 into the interconnect. In contrast, Stencil2D and Stencil3D perform nearest
